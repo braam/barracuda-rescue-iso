@@ -1,0 +1,72 @@
+#!/bin/sh
+echo 3 > /proc/sys/kernel/printk # silence kernel messages
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs none /dev
+
+# Load kernelmodules
+modprobe ahci
+modprobe sd_mod
+modprobe dm_mod
+modprobe pcspkr
+modprobe xhci-hcd
+modprobe ehci-hcd
+modprobe ohci-hcd
+modprobe uhci-hcd
+modprobe usbcore
+modprobe usb-storage
+modprobe xhci-pci
+
+# Wait for modules to create /dev devices
+sleep 3
+
+# Create mountpoints
+mkdir -p /mnt/CGFW # Barracuda
+mkdir -p /mnt/USB # USB Drive
+
+# Activeer LVM volumes
+vgscan --mknodes
+vgchange -ay
+
+# Mount USB drive
+mount -L "BAR_RESCUE" /mnt/USB/
+
+clear
+
+cat << "EOF"
+██████╗  █████╗ ██████╗ ██████╗  █████╗  ██████╗██╗   ██╗██████╗  █████╗
+██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔════╝██║   ██║██╔══██╗██╔══██╗
+██████╔╝███████║██████╔╝██████╔╝███████║██║     ██║   ██║██║  ██║███████║
+██╔══██╗██╔══██║██╔══██╗██╔══██╗██╔══██║██║     ██║   ██║██║  ██║██╔══██║
+██████╔╝██║  ██║██║  ██║██║  ██║██║  ██║╚██████╗╚██████╔╝██████╔╝██║  ██║
+╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝
+EOF
+
+printf "\n"
+
+while true; do
+  printf "\n"
+  printf "============ MENU ============\n"
+  printf "1) Reset root password\n"
+  printf "2) Get CGFW information\n"
+  printf "3) Create par backup file\n"
+  printf "4) Restore box.par backup file\n"
+  printf "5) Drop shell\n"
+  printf "6) Reboot\n"
+  printf "7) Shutdown\n"
+  printf "==============================\n"
+  printf "Choose option: "
+  read choice
+
+  case "$choice" in
+    1) /rescuemenu/scripts/reset_root.sh ;;
+    2) /rescuemenu/scripts/sysinfo.sh ;;
+    3) /rescuemenu/scripts/backup.sh ;;
+    4) /rescuemenu/scripts/restore.sh ;;
+    5) /bin/sh ;;
+    6) reboot -f ;;
+    7) poweroff -f ;;
+    *) printf "Invalid choice\n"; sleep 1 ;;
+  esac
+done
