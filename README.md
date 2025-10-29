@@ -1,2 +1,2 @@
 # barracuda-rescue-iso
-Build scripts for barracuda Cldougen Firewall rescue iso image based on alpine
+Build scripts for barracuda Cloudgen Firewall rescue iso image based on alpine
