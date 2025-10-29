@@ -8,7 +8,6 @@ WORKDIR=$(pwd)
 ISO_LABEL="BAR_RESCUE"
 ISO_NAME="barracuda-rescue.iso"
 MINIROOTFS_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION_MAJOR}/releases/${ARCH}/alpine-minirootfs-${ALPINE_VERSION_FULL}-${ARCH}.tar.gz"
-KERNEL_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION_MAJOR}/releases/${ARCH}/netboot/vmlinuz-lts"
 APK_REPO="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION_MAJOR}/main/${ARCH}/"
 
 # Function to find the correct linux-lts package (exclude -dev and -doc)
@@ -72,8 +71,10 @@ cd rootfs
 find . | cpio -o -H newc | gzip -9 > "$WORKDIR/initramfs.gz"
 cd "$WORKDIR"
 
-# Download kernel image
-wget -O iso/boot/vmlinuz "$KERNEL_URL"
+# Extract kernel image from the same linux-lts APK we used for modules
+tar --warning=no-unknown-keyword -xzf "$LINUX_LTS_PKG" -C iso/boot boot/vmlinuz-lts
+mv iso/boot/boot/vmlinuz-lts iso/boot/vmlinuz
+rm -rf iso/boot/boot
 
 # Create bootloader config
 cat > iso/boot/isolinux.cfg <<EOF
