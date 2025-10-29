@@ -11,9 +11,14 @@ if [ ! -d "$MOUNTPOINT" ]; then
   mkdir -p "$MOUNTPOINT"
 fi
 
-mount /dev/vg_root/lv_root $MOUNTPOINT
+# Check if LVM is used or not (V10 is using LVM).
+if blkid /dev/vg_root/lv_root > /dev/null 2>&1; then
+	mount /dev/vg_root/lv_root $MOUNTPOINT # V10
+else
+	mount /dev/sda2 $MOUNTPOINT
+fi
 
-# Check if mount was succesful
+# Check if mount was successful
 if [ $? -eq 0 ]; then
   # Create necessary bindings
   mount --bind /dev $MOUNTPOINT/dev
@@ -25,13 +30,13 @@ if [ $? -eq 0 ]; then
   sleep 1
 
   # Set root password to default password
-  chroot $MOUNTPOINT echo 'root:ngf1r3wall'| chpasswd >/dev/null 2>&1
+  echo '@reboot   root   /usr/bin/echo "root:ngf1r3wall" | /usr/bin/sudo /usr/sbin/chpasswd && /opt/phion/bin/hwtool -a 2 && /usr/bin/sed -i '\''$d'\'' /etc/cron.d/phioncron' >> $MOUNTPOINT/etc/cron.d/phioncron
 
   # Check if password reset was succesful
   if [ $? -eq 0 ]; then
     # Ring the bell and return success message
     chroot $MOUNTPOINT /bin/sh -c "/opt/phion/bin/hwtool -a 1" >/dev/null 2>&1
-    printf ">> Root password has been successfully restored to default password: ngf1r3wall\n"
+    printf ">> Please reboot the box, after you hear the bell password will be restored to the default one: ngf1r3wall\n"
   else
     printf "[!!] Failed to reset root password.\n"
   fi
